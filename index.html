@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>CantusKey – Transpositor de Acordes</title>
+  <style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #dbeafe, #eef2ff);
+  padding: 30px;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: #ffffff;
+  padding: 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+h1 {
+  text-align: center;
+  color: #1e3a8a;
+  font-size: 45px;
+  letter-spacing: 2px;
+}
+
+textarea {
+  width: 100%;
+  height: 220px;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #c7d2fe;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+button, select {
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+}
+
+button:hover {
+  background: #dbeafe;
+}
+
+.info {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 6px;
+}
+.logo {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 120px;
+  opacity: 0.9;
+}
+  </style>
+</head>
+<body>
+
+<h1>🎵 CantusKey</h1>
+El transpositor reconoce únicamente acordes en notación anglosajona (A–G). Ejemplo: C, G, Dm, Em7, F#.G
+<textarea id="input" placeholder="Pega aquí tu canción con acordes..."></textarea>
+
+<img src="Alabanza_Divina_Clipart.jpg" alt="Alabanza Divina" class="logo">
+
+<div class="controls">
+  <button onclick="stepDown()">⬇️ -1</button>
+  <button onclick="stepUp()">⬆️ +1</button>
+
+  <label>
+    Tono destino:
+    <select id="targetKey" onchange="transposeToKey()">
+      <option value="">-- elegir --</option>
+      <option>C</option><option>C#</option><option>Db</option><option>D</option>
+      <option>Eb</option><option>E</option><option>F</option><option>F#</option>
+      <option>Gb</option><option>G</option><option>Ab</option><option>A</option>
+      <option>Bb</option><option>B</option>
+    </select>
+  </label>
+
+  <label>
+    <input type="checkbox" id="enharmonic"> Usar bemoles
+  </label>
+
+  <button onclick="clearInput()">🗑️ Limpiar</button>
+  <button onclick="copyResult()">📋 Copiar</button>
+</div>
+
+<div class="info" id="detectedKey">Tono detectado: —</div>
+
+<textarea id="output" placeholder="Resultado transpuesto..."></textarea>
+
+<script>
+/*************************************************
+ * CantusKey – SCRIPT LIMPIO Y FUNCIONAL
+ *************************************************/
+
+const SHARPS = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const FLATS  = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+
+// Detecta acordes reales (no letras dentro de palabras)
+const CHORD_REGEX =
+  /(?<![A-Za-zÁÉÍÓÚáéíóúÑñ])([A-G])(#|b)?((?:maj|min|m|dim|aug|sus|add)?\d*(?:\/[A-G](?:#|b)?)?)(?![A-Za-zÁÉÍÓÚáéíóúÑñ])/g;
+
+let originalSong = "";
+let steps = 0;
+
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+const enharmonic = document.getElementById("enharmonic");
+const detectedKeyEl = document.getElementById("detectedKey");
+const targetKey = document.getElementById("targetKey");
+
+/* =========================
+   TRANSPOSICIÓN
+   ========================= */
+
+function transposeNote(note, steps, useFlats) {
+  const primary = useFlats ? FLATS : SHARPS;
+  const secondary = useFlats ? SHARPS : FLATS;
+  let i = primary.indexOf(note);
+  if (i === -1) i = secondary.indexOf(note);
+  if (i === -1) return note;
+  return primary[(i + steps + 12) % 12];
+}
+
+function transposeChord(chord, steps, useFlats) {
+  return chord.replace(/^([A-G])(#|b)?(.*)$/, (_, l, a, r) => {
+    const root = l + (a || "");
+    const newRoot = transposeNote(root, steps, useFlats);
+    if (r && r.includes("/")) {
+      const [qual, bass] = r.split("/");
+      return newRoot + qual + "/" + transposeNote(bass, steps, useFlats);
+    }
+    return newRoot + (r || "");
+  });
+}
+
+function transposeSong(text, steps) {
+  return text.replace(CHORD_REGEX, chord =>
+    transposeChord(chord, steps, enharmonic.checked)
+  );
+}
+
+/* =========================
+   DETECCIÓN DE TONO
+   ========================= */
+
+function detectKey(text) {
+  const counts = {};
+  text.replace(CHORD_REGEX, c => {
+    const m = c.match(/^([A-G])(#|b)?/);
+    if (!m) return;
+    const n = m[1] + (m[2] || "");
+    counts[n] = (counts[n] || 0) + 1;
+  });
+  let max = 0, key = null;
+  for (let k in counts) {
+    if (counts[k] > max) {
+      max = counts[k];
+      key = k;
+    }
+  }
+  return key;
+}
+
+/* =========================
+   CONTROLES
+   ========================= */
+
+function applyTranspose(step) {
+  if (!originalSong) originalSong = input.value;
+  steps = (steps + step + 12) % 12;
+  output.value = transposeSong(originalSong, steps);
+}
+
+function stepUp() {
+  applyTranspose(1);
+}
+
+function stepDown() {
+  applyTranspose(-1);
+}
+
+function transposeToKey() {
+  if (!originalSong) return;
+  const target = targetKey.value;
+  if (!target) return;
+
+  const current = detectKey(originalSong);
+  if (!current) return;
+
+  const scale = enharmonic.checked ? FLATS : SHARPS;
+  const diff = scale.indexOf(target) - scale.indexOf(current);
+  steps = (diff + 12) % 12;
+  output.value = transposeSong(originalSong, steps);
+}
+
+function copyResult() {
+  output.select();
+  document.execCommand("copy");
+}
+
+function clearInput() {
+  input.value = "";
+  output.value = "";
+  originalSong = "";
+  steps = 0;
+  detectedKeyEl.textContent = "Tono detectado: —";
+  targetKey.value = "";
+}
+
+/* =========================
+   EVENTOS
+   ========================= */
+
+input.addEventListener("input", () => {
+  originalSong = input.value;
+  steps = 0;
+  output.value = input.value;
+  const k = detectKey(input.value);
+  detectedKeyEl.textContent = k ? `Tono detectado: ${k}` : "Tono detectado: —";
+});
+</script>
+
+
+</body>
+</html>
