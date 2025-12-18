@@ -73,6 +73,7 @@ button:hover {
     .header {
   position: relative;
   margin-bottom: 15px;
+  min-height: 100px;
 }
 
 .logo {
@@ -80,15 +81,16 @@ button:hover {
   top: 0;
   right: 0;
   width: 120px;
+  opacity: 0.9;
 }
 
 .about-link {
   display: block;
-  text-align: right;
+  text-align: center;
   font-size: 14px;
   color: #4a5fc1;
   text-decoration: none;
-  margin-top: -8px;
+  margin-top: -6px;
 }
 
 .about-link:hover {
@@ -98,17 +100,19 @@ button:hover {
 </head>
 <body>
 
+<div class="container">
+
   <div class="header">
-  <h1>🎵 CantusKey</h1>
+    <h1>🎵 CantusKey</h1>
 
-  <a href="sobre.html" target="_blank" class="about-link">
-    Sobre CantusKey
-  </a>
+    <a href="sobre.html" target="_blank" class="about-link">
+      Sobre CantusKey
+    </a>
 
-  <img src="Alabanza_Divina_Clipart.jpg"
-       alt="Alabanza Divina"
-       class="logo">
-</div>
+    <img src="Alabanza_Divina_Clipart.jpg"
+         alt="Alabanza Divina"
+         class="logo">
+  </div>
 
 <p>
   El transpositor reconoce únicamente acordes en notación anglosajona (A–G).
@@ -280,6 +284,7 @@ input.addEventListener("input", () => {
 
 </body>
 </html>
+
 
 
 
