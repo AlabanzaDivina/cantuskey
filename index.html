@@ -70,17 +70,34 @@ button:hover {
   width: 120px;
   opacity: 0.9;
 }
+    .header {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.about-link {
+  display: block;
+  text-align: right;
+  font-size: 14px;
+  color: #4a5fc1;
+  text-decoration: none;
+  margin-top: -8px;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}
   </style>
 </head>
 <body>
 
 <h1>🎵 CantusKey</h1>
-  <div style="text-align: right; margin-top: -10px; margin-bottom: 10px;">
-    <a href="sobre.html" target="_blank"
-       style="font-size: 14px; color: #4a5fc1; text-decoration: none;">
-      Sobre CantusKey
-    </a>
-  </div>
+  <div class="header">
+  <h1>🎵 CantusKey</h1>
+  <a href="sobre.html" target="_blank" class="about-link">
+    Sobre CantusKey
+  </a>
+</div>
 
   <p>
     El transpositor reconoce únicamente acordes en notación anglosajona (A–G).
@@ -253,5 +270,6 @@ input.addEventListener("input", () => {
 
 </body>
 </html>
+
 
 
