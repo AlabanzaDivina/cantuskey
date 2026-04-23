@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -96,6 +97,22 @@ button:hover {
 .about-link:hover {
   text-decoration: underline;
 }
+
+.share-btn {
+  display: block;
+  margin: 10px auto 15px auto;
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.share-btn:hover {
+  background: #3749b5;
+}
   </style>
 </head>
 <body>
@@ -120,6 +137,10 @@ button:hover {
   El transpositor reconoce únicamente acordes en notación anglosajona (A–G).
   Ejemplo: C, G, Dm, Em7, F#.
 </p>
+
+<button onclick="sharePage()" class="share-btn">
+  📤 Compartir con mi coro
+</button>
 
 <textarea id="input" placeholder="Pega aquí tu canción con acordes..."></textarea>
 
@@ -281,6 +302,19 @@ input.addEventListener("input", () => {
   const k = detectKey(input.value);
   detectedKeyEl.textContent = k ? `Tono detectado: ${k}` : "Tono detectado: —";
 });
+
+function sharePage() {
+  if (navigator.share) {
+    navigator.share({
+      title: "CantusKey – Transpositor de acordes",
+      text: "Herramienta gratuita para transponer cantos litúrgicos fácilmente.",
+      url: "https://alabanzadivina.github.io/cantuskey/"
+    });
+  } else {
+    navigator.clipboard.writeText("https://alabanzadivina.github.io/cantuskey/");
+    alert("Enlace copiado. Ahora puedes compartirlo 👍");
+  }
+}
 </script>
 
 <!-- CONTADOR DE VISITAS -->
@@ -289,17 +323,3 @@ input.addEventListener("input", () => {
 </div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
